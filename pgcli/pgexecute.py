@@ -275,11 +275,7 @@ class PGExecute:
         return self.conn.info.transaction_status == psycopg.pq.TransactionStatus.INERROR
 
     def valid_transaction(self):
-        status = self.conn.info.transaction_status
-        return (
-            status == psycopg.pq.TransactionStatus.ACTIVE
-            or status == psycopg.pq.TransactionStatus.INTRANS
-        )
+        return self.conn.info.transaction_status == psycopg.pq.TransactionStatus.INTRANS
 
     def run(
         self,
