@@ -202,9 +202,6 @@ class PGCli:
         self.multiline_mode = c["main"].get("multi_line_mode", "psql")
         self.vi_mode = c["main"].as_bool("vi")
         self.auto_expand = auto_vertical_output or c["main"].as_bool("auto_expand")
-        self.auto_retry_closed_connection = c["main"].as_bool(
-            "auto_retry_closed_connection"
-        )
         self.expanded_output = c["main"].as_bool("expand")
         self.pgspecial.timing_enabled = c["main"].as_bool("timing")
         if row_limit is not None:
@@ -264,9 +261,6 @@ class PGCli:
         # Initialize completer
         smart_completion = c["main"].as_bool("smart_completion")
         keyword_casing = c["main"]["keyword_casing"]
-        single_connection = single_connection or c["main"].as_bool(
-            "always_use_single_connection"
-        )
         self.settings = {
             "casing_file": get_casing_file(c),
             "generate_casing_file": c["main"].as_bool("generate_casing_file"),
@@ -275,7 +269,8 @@ class PGCli:
             "qualify_columns": c["main"]["qualify_columns"],
             "case_column_headers": c["main"].as_bool("case_column_headers"),
             "search_path_filter": c["main"].as_bool("search_path_filter"),
-            "single_connection": single_connection,
+            # Always stay in single_connection mode.
+            "single_connection": True,
             "less_chatty": less_chatty,
             "keyword_casing": keyword_casing,
         }
@@ -1061,9 +1056,7 @@ class PGCli:
             click.secho("Reconnect Failed", fg="red")
             click.secho(str(e), err=True, fg="red")
         else:
-            retry = self.auto_retry_closed_connection or confirm(
-                "Run the query from before reconnecting?"
-            )
+            retry = confirm("Run the query from before reconnecting?")
             if retry:
                 click.secho("Running query...", fg="green")
                 # Don't get stuck in a retry loop
@@ -1236,7 +1229,7 @@ class PGCli:
     "single_connection",
     is_flag=True,
     default=False,
-    help="Do not use a separate connection for completions.",
+    help="DEPRECATED: Do not use a separate connection for completions. This is now permanently True.",
 )
 @click.option("-v", "--version", is_flag=True, help="Version of pgcli.")
 @click.option("-d", "--dbname", "dbname_opt", help="database name to connect to.")
